@@ -237,14 +237,107 @@ function App() {
       let slide = pptx.addSlide();
       slide.addText(obj.topic, {x:0.5, y:"5%" , h: 1, w: "90%", fontFace: "Courier", fontWeight: 'bold', fontSize: 24, align: "center", bold:true })
 
-      //ถ้า children length > 8
-      //
+      var strcount = 0;
       var childrentext = []
+      var checkBullet = 0;
+
       for (var i = 0 ; i < obj.children.length ; i++){
 
-        //slide.addText(obj.children[i].topic+(i+1)/2, { x: 0.5, y: (i+1)/2, h: 1, w: 9, fontSize: 14, align: "left" ,bullet: true})
+        console.log(obj.children[i].topic);
+        console.log('checkBullet '+ checkBullet);
 
-        childrentext.push({ text: obj.children[i].topic, options: {fontFace: "Courier", fontSize: 14, bullet: true, breakLine: true  } })
+        strcount+=obj.children[i].topic.length;
+        //slide.addText(obj.children[i].topic+(i+1)/2, { x: 0.5, y: (i+1)/2, h: 1, w: 9, fontSize: 14, align: "left" ,bullet: true})
+        
+        if ( (i+1) % 11 == 0 ) {
+          console.log('over 11 bullet')
+          slide.addText(childrentext, { x: 0.5, y: "25%", w: "90%", h: 4 ,valign:"top"});
+
+          slide = pptx.addSlide();
+          slide.addText(obj.topic + ' (ต่อ)', {x:0.5, y:"5%" , h: 1, w: "90%", fontFace: "Courier", fontWeight: 'bold', fontSize: 24, align: "center", bold:true })
+
+
+          childrentext = [];
+          childrentext.push({ text: obj.children[i].topic, options: {fontFace: "Courier", fontSize: 14, bullet: true, breakLine: true  } })
+          strcount = 0;
+          checkBullet = 0;
+
+        } else if ( strcount > 1000 ) {
+
+          if ( childrentext.length == 0 ){ //เป็นลูกตัวแรกแล้วใหญ่เกินกล่อง ให้ทำตั้งแต่หน้าแรก
+
+            var firstslideText = obj.children[i].topic.slice(0,1000);
+            slide.addText(firstslideText, { x: 0.5, y: "25%", w: "90%", h: 4 ,valign:"top", fontFace: "Courier", fontSize: 14, bullet: true, breakLine: true  });
+            var whilecountIf = Math.ceil(obj.children[i].topic.length / 1000) - 1;
+
+            var slicenumStart = 1001;
+            var slicenumEnd = 2000;
+
+            while ( whilecountIf !== 0 ) {
+
+              let newSlide = pptx.addSlide();
+              newSlide.addText(obj.topic + ' (ต่อ)', {x:0.5, y:"5%" , h: 1, w: "90%", fontFace: "Courier", fontWeight: 'bold', fontSize: 24, align: "center", bold:true })
+              
+              var topicSlice = obj.children[i].topic.slice(slicenumStart,slicenumEnd);
+              if (slicenumStart == 0){
+                newSlide.addText(topicSlice, { x: 0.5, y: "25%", w: "90%", h: 4 ,valign:"top",fontFace: "Courier", fontSize: 14, bullet: true, breakLine: true  });
+              } else {
+                newSlide.addText(topicSlice, { x: 0.5, y: "25%", w: "90%", h: 4 ,valign:"top",fontFace: "Courier", fontSize: 14, breakLine: true  });
+              }
+              whilecountIf -= 1;
+              slicenumStart = slicenumEnd;
+              if( Math.floor(obj.children[i].topic.length / 1000) !== 0 ) {
+                slicenumEnd = slicenumEnd+1000;
+              } else {
+                slicenumEnd = obj.children[i].topic.length;    
+              }    
+            }
+
+          } else { //ให้ทำหน้าต่อไป (หัวข้อมี (ต่อ) เติมท้าย)
+
+            slide.addText(childrentext, { x: 0.5, y: "25%", w: "90%", h: 4 ,valign:"top", fontFace: "Courier", fontSize: 14, bullet: true, breakLine: true  });
+
+            var whilecount = Math.ceil(obj.children[i].topic.length / 1000); //หารแล้วปัดขึ้น (2.3 => 3)
+            console.log(whilecount);
+            var slicenumStart = 0;
+            var slicenumEnd = 1000;
+
+            while ( whilecount !== 0 ) {
+
+              let newSlide = pptx.addSlide();
+              newSlide.addText(obj.topic + ' (ต่อ)', {x:0.5, y:"5%" , h: 1, w: "90%", fontFace: "Courier", fontWeight: 'bold', fontSize: 24, align: "center", bold:true })
+              
+              var topicSlice = obj.children[i].topic.slice(slicenumStart,slicenumEnd);
+              if (slicenumStart == 0){
+                newSlide.addText(topicSlice, { x: 0.5, y: "25%", w: "90%", h: 4 ,valign:"top",fontFace: "Courier", fontSize: 14, bullet: true, breakLine: true  });
+              } else {
+                newSlide.addText(topicSlice, { x: 0.5, y: "25%", w: "90%", h: 4 ,valign:"top",fontFace: "Courier", fontSize: 14, breakLine: true  });
+              }
+              whilecount -= 1;
+              slicenumStart = slicenumEnd;
+              if( Math.floor(obj.children[i].topic.length / 1000) !== 0 ) {
+                slicenumEnd = slicenumEnd+1000;
+              } else {
+                slicenumEnd = obj.children[i].topic.length;    
+              }    
+            }
+          }
+
+          childrentext = [];
+          strcount = 0;
+
+          if ( i !== obj.children.length-1 ){
+
+            slide = pptx.addSlide();
+            slide.addText(obj.topic + ' (ต่อ)', {x:0.5, y:"5%" , h: 1, w: "90%", fontFace: "Courier", fontWeight: 'bold', fontSize: 24, align: "center", bold:true })
+            checkBullet = 0;
+          }
+
+        } else {
+          childrentext.push({ text: obj.children[i].topic, options: {fontFace: "Courier", fontSize: 14, bullet: true, breakLine: true  } })
+          checkBullet += 1;
+        }
+
       }
 
       slide.addText(childrentext, { x: 0.5, y: "25%", w: "90%", h: 4 ,valign:"top"});
